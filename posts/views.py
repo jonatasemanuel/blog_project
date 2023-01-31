@@ -1,4 +1,5 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404, render
+from django.views import View
 
 from .models import Post
 from comments.models import Comment
@@ -35,7 +36,7 @@ class PostSearch(PostIndex):
     
     def get_queryset(self):
         qs = super().get_queryset()
-        termo = self.resquest.GET.get('termo')
+        termo = self.request.GET.get('termo')
 
         if not termo:
             return qs
@@ -69,7 +70,42 @@ class PostCategories(PostIndex):
         return qs
 
 
-class PostDetails(UpdateView):
+class PostDetails(View):
+    template_name = 'posts/post_details.html'
+    
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+
+        pk = self.kwargs.get('pk')
+        post = get_object_or_404(Post, pk=pk, published_post=True)
+        self.context = {
+            'post': post,
+            'comments': Comment.objects.filter(post_comment=post,
+                                               published_comment=True),
+            'form': FormComment(request.POST or None),
+        }
+    
+    def get(self,request, *args, **kwargs):
+        return render(request, self.template_name, self.context)
+    
+    def post(self, request, *args, **kwargs):
+        form = self.context['form']
+        if not form.is_valid():
+            return render(request, self.template_name, self.context)
+
+        comment = form.save(commit=False)
+        
+        if request.user.is_authenticated:
+            comment.user_comment = request.user
+        
+        comment.post_comment = self.context['post']
+        comment.save()
+        messages.success(request, 'Your comments stages to review')
+        return redirect('details', pk=self.kwargs.get('pk'))
+            
+        
+
+"""class PostDetails(UpdateView):
     template_name = 'posts/post_details.html'
     model = Post
     form_class = FormComment
@@ -93,4 +129,4 @@ class PostDetails(UpdateView):
         
         comment.save()
         messages.success(self.request, 'Good')
-        return redirect('details', pk=post.id)
+        return redirect('details', pk=post.id)"""
