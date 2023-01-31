@@ -1,0 +1,80 @@
+{% extends 'templates/base.html' %}
+
+
+{% block content %}
+<main>
+    <div class="container">
+        <div class="row pt-5">
+            <div class="col-xl"></div>
+            <div class="col-xl-8 text-center">
+                <h2>{{ post.title_post }}</h2>
+                <h5>{{ post.excerpt_post }}.</h5>
+                <p class="text-muted mt-4">
+                    <small>
+                        {{ post.author_post}} | {{ post.date_post }} | {{ post.categorie_post }}
+                    </small>
+                </p>
+            </div>
+            <div class="col-xl"></div>
+        </div>
+
+        <div class="row pt-5">
+            <div class="col-xl"></div>
+            <div class="col-xl-8">
+
+                {% if post.image_post %}
+                    <img class="img-fluid pb-5 " src="{{ post.image_post.url }}" alt="{{ post.title_post }}">
+                {% endif %}
+
+                {{ post.content_post|safe }}
+
+            </div>
+            <div class="col-xl"></div>
+        </div>
+
+        {% if comments %}
+        <div class="row pt-5">
+            <div class="col-xl"></div>
+            <div class="col-xl-8">
+                <h2 class="my-3">Comentários ({{ comments.count }})</h2>
+
+
+                {% for comment in comments %}
+                <h5 class="mb-2 mt-5">{{ comment.name_comment}}, says: </h5>
+                <small class="text-muted">{{ comment.date_comment }}</small>
+                <p class="mb-1">{{ comment.comment_comment }}</p>
+                {% endfor %}
+
+
+
+            </div>
+            <div class="col-xl"></div>
+        </div>
+        {% endif %}
+
+        <div class="row pt-5">
+            <div class="col-xl"></div>
+            <div class="col-xl-8">
+                <h2 class="my-3">Deixe um comentário</h2>
+
+                <form method="POST" action="#envia_comentario">{% csrf_token %}
+                    <table class="table">
+                        {{ form }}
+                       
+                        <tr>
+                            <td colspan="2">
+                                {% include 'templates/partials/_messages.html' %}
+                                <input id="envia_comentario" type="submit" class="btn btn-primary"
+                                    value="Enviar">
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+
+
+            </div>
+            <div class="col-xl"></div>
+        </div>
+    </div>
+</main>
+{% endblock %}
